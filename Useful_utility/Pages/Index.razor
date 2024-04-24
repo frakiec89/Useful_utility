@@ -1,0 +1,104 @@
+﻿@page "/"
+@using Useful_utility.Model
+
+@code {
+
+    private long maxFileSize = 1024 * 15 * 15;
+    private int maxAllowedFiles = 3;
+    private bool isLoading;
+
+    ServiceTextComprate service;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        var path = "test1.txt";
+        try
+        {
+            await using FileStream fs = new(path, FileMode.Create);
+            await e.File.OpenReadStream(maxFileSize).CopyToAsync(fs);
+            fs.Close();
+            isLoading = false;
+
+        }
+        catch (Exception ex)
+        {
+        }
+
+        if (isLoading == false)
+        {
+            service = new ServiceTextComprate(File.ReadAllText(path));
+        }
+    }
+
+    private void Clear()
+    {
+        service = new ServiceTextComprate();
+    }
+
+
+}
+
+
+<h4 class="text-wrap">Программа для тренировки синтаксиса . загрузите файл который хотите запомнить</h4>
+<div class="row">
+    <div class="col-10">
+        <InputFile class="form-control btn-toolbar" id="inputFile"
+                   OnChange="@LoadFiles"></InputFile>
+    </div>
+
+    <div class="col-2 align-content-center">
+        <button class="btn-primary" onclick="@Clear">очистить</button>
+    </div>
+
+</div>
+
+@if (service != null && service.Compresses.Count > 0)
+{
+    <h class="input-Test">Строки</h>
+    int x = 0;
+    @foreach (var item in service.Compresses)
+    {
+        x++;
+
+        <div class="row align-text-bottom">
+
+            @if (@item.IsGoog == null)
+            {
+                <div class="col-1 text-end align-text-bottom">
+                    <p>cтр @x</p>
+                </div>
+            }
+
+            @if (@item.IsGoog == true)
+            {
+                <div class="col-1 text-end align-text-bottom ">
+                    <a class="text-success">cтр @x</a>
+                </div>
+            }
+
+            @if (@item.IsGoog == false)
+            {
+                <div class="col-1 text-end align-text-bottom">
+                    <p class="text-danger">cтр @x</p>
+                </div>
+            }
+
+            <div class="col-11">
+                <input type="text" @bind=item.IntupText id="@x"
+                       autocomplete="off"
+                       class="form-control input-Test ">
+            </div>
+
+        </div>
+
+    }
+}
+
+@if (service != null && service.Compresses.Count == 0)
+{
+    <div>
+        <h4>Файл не загружен</h4>
+    </div>
+
+}
